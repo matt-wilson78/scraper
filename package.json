@@ -1,0 +1,27 @@
+{
+  "name": "scraper",
+  "version": "1.0.0",
+  "description": "Scraper homework assignment",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matt-wilson78/scraper.git"
+  },
+  "author": "Matt Wilson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/matt-wilson78/scraper/issues"
+  },
+  "homepage": "https://github.com/matt-wilson78/scraper#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "cheerio": "^1.0.0-rc.3",
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "mongoose": "^5.8.1"
+  }
+}
