@@ -1,6 +1,7 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
+// Schema for article notes
 var NoteSchema = new Schema({
     title: {
         type: String
@@ -10,5 +11,6 @@ var NoteSchema = new Schema({
     }
 })
 
+// Saving & exporting the Note schema
 var Note = mongoose.model("Note", NoteSchema);
 module.exports = Note;

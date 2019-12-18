@@ -1,3 +1,4 @@
+// Requiring various NPM packages that are used in this app
 var express = require("express");
 var logger = require("morgan");
 var exphbs = require("express-handlebars")
@@ -30,14 +31,15 @@ var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines
 mongoose.connect(MONGODB_URI);
 
 // Routes here
-// A GET route for scraping the echoJS website
+// A GET route for scraping the escapist magazine website
 app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with axios
   axios.get("https://www.escapistmagazine.com/v2/").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(response.data);
+    console.log(response.data);
 
-    // Now, we grab every h2 within an article tag, and do the following:
+    // Grabbing the articles within the post_text div:
     $("div.post_text").each(function(i, element) {
       // Save an empty result object
       var result = {};
@@ -45,13 +47,13 @@ app.get("/scrape", function(req, res) {
       // Add the text and href of every link, and save them as properties of the result object
       result.title = $(this)
         .children("h3")
-        .text();
+        .text().trim();
       result.link = $(this)
         .children("a")
         .attr("href");
       result.summary = $(this)
         .children("div.excerpt")
-        .text();
+        .text().trim();
 
       // Create a new Article using the `result` object built from scraping
       db.Article.create(result)
