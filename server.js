@@ -28,13 +28,14 @@ app.engine("handlebars", exphbs({defaultLayout: "main"}));
 app.set("view engine", "handlebars");
 
 // Connect to the Mongo DB
+var PORT = process.env.PORT || 3000
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
 
 mongoose.connect(MONGODB_URI);
 
 // Routes here
 // A GET route for scraping the escapist magazine website
-app.get("/scrape", function(req, res) {
+router.get("/scrape", function(req, res) {
   // First, we grab the body of the html with axios
   axios.get("https://www.escapistmagazine.com/v2/").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
@@ -68,34 +69,39 @@ app.get("/scrape", function(req, res) {
           console.log(err);
         });
     });
-    res.redirect("/");
+    //res.redirect("/");
     // Send a message to the client
     res.send("Scrape Complete");
   });
 });
 
-app.get("/", function(req, res) {
-  res.redirect("/articles";)
+router.get("/", function(req, res) {
+  res.redirect("/articles");
 })
 
 router.get("/articles", function(req, res) {
-  Article.find().sort({_id: -1}).exec(function(err, data) {
+  db.Article.find().sort({_id: -1}).exec(function(err, data) {
     if (err) {
       console.log(err);
     } else {
-      res.render("index", data);
+      var artcl = { article: data };
+      res.render("index", artcl);
     }
   })
 })
 
 router.get("/articles-json", function(req, res) {
-  Article.find({}, function(err, data) {
+  db.Article.find({}, function(err, data) {
     if (err) {
       console.log(err);
     } else {
       res.json(data);
     }
   })
+})
+
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}. Visit http://localhost:${PORT}/ in your browser.`)
 })
 
 module.exports = router;
