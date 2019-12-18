@@ -5,6 +5,8 @@ var exphbs = require("express-handlebars")
 var mongoose = require("mongoose");
 var axios = require("axios");
 var cheerio = require("cheerio");
+var request = require("request");
+var router = express.Router();
 
 // Require all models
 var db = require("./models");
@@ -44,7 +46,7 @@ app.get("/scrape", function(req, res) {
       // Save an empty result object
       var result = {};
 
-      // Add the text and href of every link, and save them as properties of the result object
+      // Add the title, link, & summary of each result, and save them as properties of the result object
       result.title = $(this)
         .children("h3")
         .text().trim();
@@ -66,8 +68,34 @@ app.get("/scrape", function(req, res) {
           console.log(err);
         });
     });
-
+    res.redirect("/");
     // Send a message to the client
     res.send("Scrape Complete");
   });
 });
+
+app.get("/", function(req, res) {
+  res.redirect("/articles";)
+})
+
+router.get("/articles", function(req, res) {
+  Article.find().sort({_id: -1}).exec(function(err, data) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render("index", data);
+    }
+  })
+})
+
+router.get("/articles-json", function(req, res) {
+  Article.find({}, function(err, data) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(data);
+    }
+  })
+})
+
+module.exports = router;
