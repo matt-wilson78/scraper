@@ -19,14 +19,6 @@ var ArticleSchema = new Schema({
         type: Boolean,
         default: false
     },
-    status: {
-        type: String,
-        default: "Save Article"
-    },
-    created: {
-        type: Date,
-        default: Date.now
-    },
     // reference to the Note schema
     note: [{
         type: Schema.Types.ObjectId,

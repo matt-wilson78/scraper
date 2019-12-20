@@ -5,8 +5,6 @@ var exphbs = require("express-handlebars")
 var mongoose = require("mongoose");
 var axios = require("axios");
 var cheerio = require("cheerio");
-var request = require("request");
-var router = express.Router();
 
 // Require all models
 var db = require("./models");
@@ -34,16 +32,27 @@ var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines
 mongoose.connect(MONGODB_URI);
 
 // Routes here
+
+app.get("/", (req, res) => {
+  db.Article.find({ isSaved: false })
+    .then(dbArticle => {
+      res.render("article"), { article: dbArticle }
+    })
+    .catch((err) => {
+      return res.json(err)
+    })
+})
+
 // A GET route for scraping the escapist magazine website
-router.get("/scrape", function(req, res) {
+app.get("/scrape", (req, res) => {
   // First, we grab the body of the html with axios
-  axios.get("https://www.escapistmagazine.com/v2/").then(function(response) {
+  axios.get("https://www.escapistmagazine.com/v2/").then((response) => {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(response.data);
-    console.log(response.data);
+    //console.log(response.data);
 
     // Grabbing the articles within the post_text div:
-    $("div.post_text").each(function(i, element) {
+    $("div.post_text").each((i, element) => {
       // Save an empty result object
       var result = {};
 
@@ -57,51 +66,62 @@ router.get("/scrape", function(req, res) {
       result.summary = $(this)
         .children("div.excerpt")
         .text().trim();
+      result.isSaved = false;
 
       // Create a new Article using the `result` object built from scraping
       db.Article.create(result)
-        .then(function(dbArticle) {
+        .then((dbArticle) => {
           // View the added result in the console
           console.log(dbArticle);
         })
-        .catch(function(err) {
+        .catch((err) => {
           // If an error occurred, log it
-          console.log(err);
+          res.json(err);
         });
     });
-    //res.redirect("/");
     // Send a message to the client
     res.send("Scrape Complete");
   });
 });
 
-router.get("/", function(req, res) {
-  res.redirect("/articles");
+// Find all articles
+app.get("/article", (req, res) => {
+  db.Article.find({})
+    .then((dbArticle) => {
+      res.json(dbArticle);
+    })
+    .catch((err) => {
+      res.json(err);
+    })
 })
 
-router.get("/articles", function(req, res) {
-  db.Article.find().sort({_id: -1}).exec(function(err, data) {
-    if (err) {
-      console.log(err);
-    } else {
-      var artcl = { article: data };
-      res.render("index", artcl);
-    }
-  })
+// Find article by id, populate with note
+app.get("/article/:id", (req, res) => {
+  db.Article.findOne({_id: req.params.id})
+    .populate("note")
+    .then( dbArticle => {
+      res.json(dbArticle)
+    })
+    .catch( err => {
+      res.json(err)
+    })
 })
 
-router.get("/articles-json", function(req, res) {
-  db.Article.find({}, function(err, data) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(data);
-    }
-  })
+// Create/ update a note
+app.post("/article/:id", (req, res) => {
+  db.Note.create(req.body)
+    .then(dbNote => {
+      return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    })
+    .then( dbArticle => {
+      res.json(dbArticle)
+    })
+    .catch( err => {
+      res.json(err)
+    })
 })
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}. Visit http://localhost:${PORT}/ in your browser.`)
 })
 
-module.exports = router;
